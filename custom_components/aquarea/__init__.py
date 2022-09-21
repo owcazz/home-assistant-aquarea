@@ -11,6 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers import entity_registry, device_registry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import ATTRIBUTION, CLIENT, DEVICES, DOMAIN
@@ -78,6 +79,26 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    ent_reg = entity_registry.async_get(hass)
+    dev_reg = device_registry.async_get(hass)
+    devices = device_registry.async_entries_for_config_entry(
+        dev_reg, config_entry.entry_id
+    )
+    entities = entity_registry.async_entries_for_config_entry(
+        ent_reg, config_entry.entry_id
+    )
+
+    for entity in entities:
+        if device := next(
+            (device for device in devices if device.id == entity.device_id), None
+        ):
+            device_guid = next(
+                (id[1] for id in device.identifiers if id[0] == DOMAIN), None
+            )
+    return False
 
 
 class AquareaBaseEntity(CoordinatorEntity[AquareaDataUpdateCoordinator]):

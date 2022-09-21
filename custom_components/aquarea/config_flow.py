@@ -27,7 +27,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 class AquareaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Aquarea Smart Cloud."""
 
-    VERSION = 1
+    VERSION = 2
 
     _username: str | None = None
     _session: aiohttp.ClientSession | None = None
